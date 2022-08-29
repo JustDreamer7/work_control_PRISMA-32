@@ -41,7 +41,8 @@ def make_report_prisma(start_date, end_date, path_to_files_1, path_to_files_2, r
 
     real_worktime = worktime_frame_2['Worktime'].sum() - 24 * days_amount + worktime_frame_1[
         'Worktime'].sum() + brake_both_cl_time / 60
-    print(brake_both_cl_time)
+
+    print(f'{brake_both_cl_time=}')
 
     graphs.change_design()
 

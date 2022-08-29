@@ -2,11 +2,11 @@ import datetime
 import os
 
 from PyQt6 import QtCore, QtWidgets
-
 from interfaces.clientui import Ui_MainWindow
 from interfaces.drctryChoice import Ui_drctryChoice
 from interfaces.takeFiles import Ui_takeFiles
 from make_report_prisma import make_report_prisma
+from exceptions import DateError
 
 class UIReportPrisma32(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -60,36 +60,35 @@ class UIReportPrisma32(QtWidgets.QMainWindow, Ui_MainWindow):
             ui_report_drctry.lineEdit.setText("")
         self.widget.show()
 
+
     def report_on_click(self):
         """Метод, описывающий получение паспорта с помощью данных UI"""
         start_date = self.dateEdit.date().toPyDate()
         end_date = self.dateEdit_2.date().toPyDate()
-        print(f'start_date - {start_date}, \n end_date - {end_date}')
-        with open('path_prisma_report.txt', 'r') as f:
-            report_path = f.read()
-        picture_path = report_path + '/Pics' + f'/{start_date.year}'
-        with open('path_prisma_1cl_files.txt', 'r') as f:
-            path_to_files_1 = f.read()
-        with open('path_prisma_2cl_files.txt', 'r') as f:
-            path_to_files_2 = f.read()
-        if ~os.path.exists(picture_path):
-            try:
-                os.mkdir(picture_path)
-            except OSError:
-                print(f"Создать директорию {picture_path} не удалось")
-            else:
-                print(f"Успешно создана директория {picture_path}")
-
         try:
+            if start_date > end_date:
+                raise DateError(start_date, end_date)
+            with open('path_prisma_report.txt', 'r') as f:
+                report_path = f.read()
+            picture_path = report_path + '/Pics' + f'/{start_date.year}'
+            with open('path_prisma_1cl_files.txt', 'r') as f:
+                path_to_files_1 = f.read()
+            with open('path_prisma_2cl_files.txt', 'r') as f:
+                path_to_files_2 = f.read()
+            if ~os.path.exists(picture_path):
+                try:
+                    os.mkdir(picture_path)
+                except OSError:
+                    print(f"Создать директорию {picture_path} не удалось")
+                else:
+                    print(f"Успешно создана директория {picture_path}")
             make_report_prisma(start_date=start_date, end_date=end_date, report_path=report_path, picture_path=picture_path,
                                path_to_files_1=path_to_files_1, path_to_files_2 = path_to_files_2)
         except PermissionError:
             print("Закройте предыдущую версию файла!")
-        # проверяем нормальные даты или нет, если да, то графики и word файл строятся
-        # try:
-        #     pass
-        # except ZeroDivisionError:
-        #     pass
+        except DateError:
+            DateError(start_date, end_date).ui_output_error()
+
 
 
 # запуск основного окна
