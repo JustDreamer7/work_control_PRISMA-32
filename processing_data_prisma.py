@@ -113,15 +113,19 @@ class ProccessingPrismaCl:
                     count_rate_amp_10_fr_1[f'amp{i + 1}'].append(0.00)
                 event_counter_fr_4['Events'].append(0.00)
 
-        return worktime_dict, breaks_dict, n_vs_zero_tr_dict, event_counter_fr_4, amp_5_fr_2_frame, amp_10_fr_1_frame, count_rate_amp_5_fr_2, count_rate_amp_10_fr_1
+        worktime_frame = pd.DataFrame(worktime_dict)
+        n_vs_zero_tr_frame = pd.DataFrame(n_vs_zero_tr_dict)
+        breaks_frame = pd.DataFrame(breaks_dict)
+        event_counter_fr_4 = pd.DataFrame(event_counter_fr_4)
+        count_rate_amp_5_fr_2 = pd.DataFrame(count_rate_amp_5_fr_2)
+        count_rate_amp_10_fr_1 = pd.DataFrame(count_rate_amp_10_fr_1)
 
-    # worktime_df = pd.DataFrame(worktime_dict, columns=['Date', 'Worktime'])
-    # worktime_df['Date'] = pd.to_datetime(worktime_df["Date"])
-    # # df.loc[16, 'WORKTIME'] = 24 # для января 2013-го, там хуйня с файлом, а именно разное количество колонок
-    # return worktime_df
-    # n_vs_zero_tr_df = pd.DataFrame(n_vs_zero_tr_dict, columns=['Date'] + [f'n{i}' for i in range(1, 17)])
-    # n_vs_zero_tr_df['Date'] = pd.to_datetime(n_vs_zero_tr_df["Date"])
-    # return n_vs_zero_tr_df
+        for column in [f'amp{i}' for i in range(1,17)]:
+            count_rate_amp_5_fr_2[column] = count_rate_amp_5_fr_2[column]/worktime_frame['Worktime']
+            count_rate_amp_10_fr_1[column] = count_rate_amp_10_fr_1[column]/worktime_frame['Worktime']
+
+        return worktime_frame, breaks_frame, n_vs_zero_tr_frame, event_counter_fr_4, amp_5_fr_2_frame, amp_10_fr_1_frame, count_rate_amp_5_fr_2, count_rate_amp_10_fr_1
+
 
     @staticmethod
     def correcting_p_file(p_file):
@@ -209,31 +213,3 @@ class ProccessingPrismaCl:
                 'count_rate': cluster_count_rate}
 
 
-        # if max(index) < 287:
-        #     start_hour = math.floor(max(index) * 5 / 60)
-        #     start_minutes = max(index) * 5 - start_hour * 60
-        #     end_hour = 23
-        #     end_minutes = 55
-        #     daily_breaks_dict['StartHour'].append(start_hour)
-        #     daily_breaks_dict['StartMinutes'].append(start_minutes)
-        #     daily_breaks_dict['EndHour'].append(end_hour)
-        #     daily_breaks_dict['EndMinutes'].append(end_minutes)
-        # if min(index) != 0:
-        #     start_hour = 0
-        #     start_minutes = 0
-        #     end_hour = math.floor(min(index) * 5 / 60)
-        #     end_minutes = min(index) * 5 - end_hour * 60
-        #     daily_breaks_dict['StartHour'].append(start_hour)
-        #     daily_breaks_dict['StartMinutes'].append(start_minutes)
-        #     daily_breaks_dict['EndHour'].append(end_hour)
-        #     daily_breaks_dict['EndMinutes'].append(end_minutes)
-        # for i in range(1, len(index)):
-        #     if index[i] - index[i - 1] > 1:
-        #         start_hour = math.floor(index[i - 1] * 5 / 60)
-        #         start_minutes = index[i - 1] * 5 - start_hour * 60
-        #         end_hour = math.floor(index[i] * 5 / 60)
-        #         end_minutes = index[i] * 5 - end_hour * 60
-        #         daily_breaks_dict['StartHour'].append(start_hour)
-        #         daily_breaks_dict['StartMinutes'].append(start_minutes)
-        #         daily_breaks_dict['EndHour'].append(end_hour)
-                # daily_breaks_dict['EndMinutes'].append(end_minutes)

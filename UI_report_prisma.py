@@ -1,14 +1,14 @@
-import os
 import datetime
-from PyQt6 import QtCore, QtWidgets
+import os
 
+from PyQt6 import QtCore, QtWidgets
 
 from interfaces.clientui import Ui_MainWindow
 from interfaces.drctryChoice import Ui_drctryChoice
 from interfaces.takeFiles import Ui_takeFiles
+from make_report_prisma import make_report_prisma
 
-
-class ReportPrisma32(QtWidgets.QMainWindow, Ui_MainWindow):
+class UIReportPrisma32(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
         self.widget = QtWidgets.QWidget()
@@ -21,7 +21,7 @@ class ReportPrisma32(QtWidgets.QMainWindow, Ui_MainWindow):
                                              int(str(datetime.datetime.today()).split(' ')[0].split('-')[1]),
                                              int(str(datetime.datetime.today()).split(' ')[0].split('-')[2])))
         self.dateEdit_2.setDisplayFormat("dd.MM.yyyy")
-        self.dateEdit.setDate(QtCore.QDate(2020, 1, 1))
+        self.dateEdit.setDate(QtCore.QDate(int(str(datetime.datetime.today()).split(' ')[0].split('-')[0]), 1, 1))
         self.dateEdit.setDisplayFormat("dd.MM.yyyy")
 
     def open_file_directory(self):
@@ -62,16 +62,16 @@ class ReportPrisma32(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def report_on_click(self):
         """Метод, описывающий получение паспорта с помощью данных UI"""
-        start_date = self.dateEdit.dateTime()
-        end_date = self.dateEdit_2.dateTime()
+        start_date = self.dateEdit.date().toPyDate()
+        end_date = self.dateEdit_2.date().toPyDate()
         print(f'start_date - {start_date}, \n end_date - {end_date}')
         with open('path_prisma_report.txt', 'r') as f:
             report_path = f.read()
-        picture_path = report_path + '/Pics'
+        picture_path = report_path + '/Pics' + f'/{start_date.year}'
         with open('path_prisma_1cl_files.txt', 'r') as f:
-            file1cl = f.read()
+            path_to_files_1 = f.read()
         with open('path_prisma_2cl_files.txt', 'r') as f:
-            file2cl = f.read()
+            path_to_files_2 = f.read()
         if ~os.path.exists(picture_path):
             try:
                 os.mkdir(picture_path)
@@ -80,15 +80,20 @@ class ReportPrisma32(QtWidgets.QMainWindow, Ui_MainWindow):
             else:
                 print(f"Успешно создана директория {picture_path}")
 
-        # проверяем нормальные даты или нет, если да, то графики и word файл строятся
         try:
-            pass
-        except ZeroDivisionError:
-            pass
+            make_report_prisma(start_date=start_date, end_date=end_date, report_path=report_path, picture_path=picture_path,
+                               path_to_files_1=path_to_files_1, path_to_files_2 = path_to_files_2)
+        except PermissionError:
+            print("Закройте предыдущую версию файла!")
+        # проверяем нормальные даты или нет, если да, то графики и word файл строятся
+        # try:
+        #     pass
+        # except ZeroDivisionError:
+        #     pass
 
 
 # запуск основного окна
 app = QtWidgets.QApplication([])
-window = ReportPrisma32()
+window = UIReportPrisma32()
 window.show()
 app.exec()

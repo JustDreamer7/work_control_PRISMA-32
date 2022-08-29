@@ -11,6 +11,10 @@ class GraphsDrawing:
                     'edgecolor': 'red',  # цвет крайней линии
                     'boxstyle': 'round'}
 
+    def __del__(self):
+        """Деструктор, закрывающий все объекты Figure, созданные в процессе работы класса."""
+        plt.close('all')
+
     @staticmethod
     def change_design():
         """Метод, который должен применяться вначале, для изменения размера и веса шрифта. А также для изменения,
@@ -49,7 +53,7 @@ class GraphsDrawing:
         plt.plot(worktime_frame['Date'], worktime_frame['Worktime'], marker='s', markersize=15, color='darkblue',
                  linewidth='6')
         plt.title(f"{cluster}-кластер", bbox=self.box, fontsize=20, loc='center')
-        path_pic = f'{self.path_to_pic}\\{self.start_date.year}\\{cluster}worktime{self.start_date.day}-{self.start_date.month}-{self.end_date.day}-{self.end_date.month}.png'
+        path_pic = f'{self.path_to_pic}\\{cluster}worktime{self.start_date.day}-{self.start_date.month}-{self.end_date.day}-{self.end_date.month}.png'
         plt.savefig(path_pic, bbox_inches='tight')
         return path_pic
 
@@ -64,7 +68,7 @@ class GraphsDrawing:
         plt.plot(amp_5_fr_4_frame_2['Date'], amp_5_fr_4_frame_2['Events'] / worktime_frame_2['Worktime'], label='2 Кл.',
                  marker='s', markersize=15, color='crimson', linewidth='6')
         plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
-        path_pic = f'{self.path_to_pic}\\{self.start_date.year}\\amp_5_fr_4{self.start_date.day}-{self.start_date.month}-{self.end_date.day}-{self.end_date.month}.png'
+        path_pic = f'{self.path_to_pic}\\amp_5_fr_4{self.start_date.day}-{self.start_date.month}-{self.end_date.day}-{self.end_date.month}.png'
         plt.savefig(path_pic, bbox_inches='tight')
         return path_pic
 
@@ -79,7 +83,7 @@ class GraphsDrawing:
         for i in range(1, 17):
             plt.plot(neutron_num_0_tr_frame['Date'], neutron_num_0_tr_frame[f'n{i}'], label=f'{i}', linewidth=5)
         plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
-        path_pic = f'{self.path_to_pic}\\{self.start_date.year}\\{cluster}n_to_0_tr{self.start_date.day}-{self.start_date.month}-{self.end_date.day}-{self.end_date.month}.png'
+        path_pic = f'{self.path_to_pic}\\{cluster}n_to_0_tr{self.start_date.day}-{self.start_date.month}-{self.end_date.day}-{self.end_date.month}.png'
         plt.savefig(path_pic, bbox_inches='tight')
         return path_pic
 
@@ -103,7 +107,7 @@ class GraphsDrawing:
                      amp_distribution_frame[amp_distribution_frame[f'amp{i}'] >= a_crit][
                          f'amp{i}'].value_counts().sort_index(), label=f'{i}', linewidth=5)
         plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
-        path_pic = f'{self.path_to_pic}\\{self.start_date.year}\\{cluster}amp_distr_{a_crit}_fr_{freq}{self.start_date.day}-{self.start_date.month}-{self.end_date.day}-{self.end_date.month}.png'
+        path_pic = f'{self.path_to_pic}\\{cluster}amp_distr_{a_crit}_fr_{freq}{self.start_date.day}-{self.start_date.month}-{self.end_date.day}-{self.end_date.month}.png'
         plt.savefig(path_pic, bbox_inches='tight')
         return path_pic
 
@@ -115,9 +119,12 @@ class GraphsDrawing:
         for i in range(1, 17):
             plt.xticks([i.date() for i in list(count_rate_frame['Date'])[::4]],
                        [i.date() for i in list(count_rate_frame['Date'])[::4]])
-            plt.plot(count_rate_frame['Date'], count_rate_frame[f'amp{i}'] / working_frame['Worktime'], label=f'{i}',
+            plt.plot(count_rate_frame['Date'], count_rate_frame[f'amp{i}'], label=f'{i}',
                      linewidth=6)
         plt.legend(bbox_to_anchor=(1.04, 1), loc="upper left")
-        path_pic = f'{self.path_to_pic}\\{self.start_date.year}\\{cluster}count_rate_{a_crit}_fr_{freq}{self.start_date.day}-{self.start_date.month}-{self.end_date.day}-{self.end_date.month}.png'
+        path_pic = f'{self.path_to_pic}\\{cluster}count_rate_{a_crit}_fr_{freq}{self.start_date.day}-{self.start_date.month}-{self.end_date.day}-{self.end_date.month}.png'
         plt.savefig(path_pic, bbox_inches='tight')
         return path_pic
+
+
+

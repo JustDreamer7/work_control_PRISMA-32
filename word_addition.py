@@ -132,8 +132,8 @@ def draw_stat_table(stat_table, stat_info_1, stat_info_2):
     stat_table.cell(0, 2).merge(stat_table.cell(0, 17))
     stat_table.cell(0, 0).merge(stat_table.cell(1, 0))
     stat_table.cell(0, 1).merge(stat_table.cell(1, 1))
-    for j in range(stat_info_1.shape[-1]):
-        stat_table.cell(1, j + 2).text = stat_info_1.columns[j]
+    for j in range(16):
+        stat_table.cell(1, j + 2).text = str(j+1)
     stat_table.cell(2, 0).text = '1'
     stat_table.cell(2, 0).merge(stat_table.cell(3, 0))
     stat_table.cell(4, 0).text = '2'
