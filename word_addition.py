@@ -133,7 +133,7 @@ def draw_stat_table(stat_table, stat_info_1, stat_info_2):
     stat_table.cell(0, 0).merge(stat_table.cell(1, 0))
     stat_table.cell(0, 1).merge(stat_table.cell(1, 1))
     for j in range(16):
-        stat_table.cell(1, j + 2).text = str(j+1)
+        stat_table.cell(1, j + 2).text = str(j + 1)
     stat_table.cell(2, 0).text = '1'
     stat_table.cell(2, 0).merge(stat_table.cell(3, 0))
     stat_table.cell(4, 0).text = '2'
@@ -181,15 +181,21 @@ def time_breaks_counter(brake_frame):
     fail_str_end = []
     lost_minutes = []
     for i in range(len(brake_frame.index)):
+        start_hour = int(brake_frame['StartSeconds'][i] // 60 // 60)
+        start_minute = int((brake_frame['StartSeconds'][i] - start_hour * 3600) // 60)
+        start_second = int((brake_frame['StartSeconds'][i] - start_hour * 3600) % 60)
+        end_hour = int(brake_frame['EndSeconds'][i] // 60 // 60)
+        end_minute = int((brake_frame['EndSeconds'][i] - end_hour * 3600) // 60)
+        end_second = int((brake_frame['EndSeconds'][i] - end_hour * 3600) % 60)
         fail_str_begin.append(
-            f" {brake_frame['Date'][i].date()}  {brake_frame['StartMinutes'][i] // 60:02}:{brake_frame['StartMinutes'][i] % 60:02}")
+            f" {brake_frame['Date'][i]}  {start_hour:02}:{start_minute:02}:{start_second:02}")
         fail_str_end.append(
-            f" {brake_frame['Date'][i].date()}  {brake_frame['EndMinutes'][i] // 60:02}:{brake_frame['EndMinutes'][i] % 60:02}")
-        lost_minutes.append(brake_frame['EndMinutes'][i] - brake_frame['StartMinutes'][i])
+            f" {brake_frame['Date'][i]}  {end_hour:02}:{end_minute:02}:{end_second:02}")
+        lost_minutes.append(int(brake_frame['EndSeconds'][i]//60 - brake_frame['StartSeconds'][i]//60))
 
     for i in range(1, len(brake_frame.index)):
-        if brake_frame['StartMinutes'][i] == 0 and brake_frame['EndMinutes'][i - 1] == 1435 and \
-                (brake_frame['Date'][i] - brake_frame['Date'][i-1]).days == 1:
+        if brake_frame['StartSeconds'][i] == 0 and brake_frame['EndSeconds'][i - 1] == 1435 and \
+                (brake_frame['Date'][i] - brake_frame['Date'][i - 1]).days == 1:
             breaks -= 1
 
     return fail_str_begin, fail_str_end, lost_minutes, breaks

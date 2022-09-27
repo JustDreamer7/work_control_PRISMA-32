@@ -6,56 +6,11 @@ import pandas as pd
 
 
 class ProccessingPrismaCl:
-    def __init__(self, cluster, start_date, end_date, path_to_files):
-        self.cluster = cluster
-        if cluster == 1:
-            self.cluster_n = ''
-        else:
-            self.cluster_n = '2'
-        # self.a_crit = a_crit
-        # self.freq = freq
+    def __init__(self, start_date, end_date):
         self.start_date = start_date
         self.end_date = end_date
-        self.path_to_files = path_to_files
 
-        self.amp_n_cols = []
-        for i in range(1, 17):
-            self.amp_n_cols.append(f'amp{i}')
-            self.amp_n_cols.append(f'n{i}')
-
-    def reading_p_file(self, single_date):
-        """Метод, прочитывающий p-файлы, возвращающий датафрейм дня на выходе. Или возвращающий filenotfounderror, если
-        файла нет"""
-        try:
-            p_file = pd.read_csv(
-                f'{self.path_to_files}\\nv\\{self.cluster}p{single_date.date().month:02}' +
-                f'-{single_date.date().day:02}.{single_date.date().year - 2000:02}',
-                sep='\s[-]*\s*', header=None, skipinitialspace=True, engine='python')
-            p_file.dropna(axis=1, how='all', inplace=True)
-            return p_file
-        except FileNotFoundError as error:
-            print(f"File {self.path_to_files}\\nv\\{self.cluster}p{single_date.date().month:02}-" +
-                  f"{single_date.date().day:02}.{single_date.date().year - 2000:02} does not exist")
-            return error.strerror
-
-    def reading_n_file(self, single_date):
-        """Метод, прочитывающий n-файлы, возвращающий датафрейм дня на выходе. Или возвращающий filenotfounderror, если
-        файла нет"""
-        try:
-            n_file = pd.read_csv(
-                f'{self.path_to_files}\\{self.cluster_n}n_{single_date.date().month:02}' +
-                f'-{single_date.date().day:02}.{single_date.date().year - 2000:02}',
-                sep=' ', header=None, skipinitialspace=True, index_col=False,
-                names=['time', 'number', 'sum_n', 'tr'] + self.amp_n_cols)
-            n_file.dropna(axis=1, how='all', inplace=True)
-            return n_file
-        except FileNotFoundError as error:
-            print(
-                f"File {self.path_to_files}\\{self.cluster_n}n_{single_date.date().month:02}-" +
-                f"{single_date.date().day:02}.{single_date.date().year - 2000:02}', does not exist")
-            return error.strerror
-
-    def day_proccessing(self):
+    def day_proccessing(self, n_file, p_file):
         """Функция, в которую помещается полная дневная обработка"""
         worktime_dict = defaultdict(list)
         n_vs_zero_tr_dict = defaultdict(list)
@@ -66,19 +21,14 @@ class ProccessingPrismaCl:
         amp_5_fr_2_frame = pd.DataFrame(columns=[f'amp{i}' for i in range(1, 17)])
         amp_10_fr_1_frame = pd.DataFrame(columns=[f'amp{i}' for i in range(1, 17)])
         for single_date in pd.date_range(self.start_date, self.end_date):
-            n_file = self.reading_n_file(single_date)
-            p_file = self.reading_p_file(single_date)
-
             worktime_dict['Date'].append(single_date)
             n_vs_zero_tr_dict['Date'].append(single_date)
             count_rate_amp_5_fr_2['Date'].append(single_date)
             count_rate_amp_10_fr_1['Date'].append(single_date)
             event_counter_fr_4['Date'].append(single_date)
             if type(p_file) != str:
-                corr_p_file = self.correcting_p_file(p_file)
-
-                worktime_dict['Worktime'].append(round(len(corr_p_file.index) * 5 / 60, 2))
-                break_time_dict = self.counting_break_time(corr_p_file)
+                worktime_dict['Worktime'].append(round(len(p_file.index) * 5 / 60, 2))
+                break_time_dict = self.counting_break_time(p_file)
                 if break_time_dict:
                     breaks_dict['Date'].append(single_date)
                     breaks_dict['StartMinutes'].extend(break_time_dict['StartMinutes'])
@@ -87,7 +37,7 @@ class ProccessingPrismaCl:
             else:
                 worktime_dict['Worktime'].append(0.00)
             if type(n_file) != str:
-                neutron_to_zero_trigger = self.neutron_to_zero_trigger(n_file)
+                neutron_to_zero_trigger = self.neutron_to_zero_trigger(n_file['Date'])
                 for i in range(16):
                     n_vs_zero_tr_dict[f'n{i + 1}'].append(neutron_to_zero_trigger[i])
                     count_rate_amp_5_fr_2[f'amp{i + 1}'].append(
@@ -126,37 +76,6 @@ class ProccessingPrismaCl:
 
         return worktime_frame, breaks_frame, n_vs_zero_tr_frame, event_counter_fr_4, amp_5_fr_2_frame, amp_10_fr_1_frame, count_rate_amp_5_fr_2, count_rate_amp_10_fr_1
 
-
-    @staticmethod
-    def correcting_p_file(p_file):
-        """Метод, корректирующий старые файлы ПРИЗМА-32, возвращающий скорректированный датафрейм"""
-        p_file['time'] = p_file[0]
-        del p_file[0]
-        p_file = p_file.sort_values(by='time')
-        if len(p_file['time']) > len(p_file['time'].unique()):
-            """Данный костыль нужен для старых p-файлов ПРИЗМА-32(до 14-15 гг.), в которых индексы строк, 
-            по сути обозначающие 5 минут реального времени между ранами, могут повторяться. """
-            p_file.drop_duplicates(keep=False, inplace=True)
-            """После удаления полных дубликатов ищем повторяющиеся индексы. Сначала удаляем строки, 
-            состоящие полностью из нулей и точек (value = len(p_file.columns)), потом ищем множество 
-            дубликатов индексов и множество строк, почти полностью (value > 30) состоящих из нулей и точек. 
-            Берем пересечение этих двух множеств и удаляем находящиеся в пересечении строки"""
-            null_row = dict(p_file.isin([0, '.']).sum(axis=1))  # Проверяем на нули и точки
-            all_null_index = list(
-                {key: value for key, value in null_row.items() if value == len(p_file.columns)}.keys())
-            p_file.drop(index=all_null_index, inplace=True)
-
-            null_index = list(
-                {key: value for key, value in null_row.items() if value > len(p_file.columns) - 5}.keys())
-            same_index = dict(p_file['time'].duplicated(keep=False))
-            same_index_row = list({key: value for key, value in same_index.items() if value is True}.keys())
-            bad_index = list(set(null_index) & set(same_index_row))
-            p_file.drop(index=bad_index, inplace=True)
-            """Также может быть, что после фильтрации осталось больше строк, чем нужно, так как в старых 
-            p-файлах может быть больше индексов, чем минут в дне. Тогда оставляем только 288"""
-            if len(p_file.index) == 289:
-                p_file = p_file.head(288)
-        return p_file
 
     @staticmethod
     def counting_break_time(p_file):
@@ -211,5 +130,10 @@ class ProccessingPrismaCl:
         return {'sum_events': len(amp_frame.index),
                 'DataFrame': amp_frame[[f'amp{i}' for i in range(1, 17)]],
                 'count_rate': cluster_count_rate}
+
+
+
+
+
 
 

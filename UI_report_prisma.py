@@ -5,8 +5,10 @@ from PyQt6 import QtCore, QtWidgets
 from interfaces.clientui import Ui_MainWindow
 from interfaces.drctryChoice import Ui_drctryChoice
 from interfaces.takeFiles import Ui_takeFiles
-from make_report_prisma import make_report_prisma
+from make_report_prisma import make_report_prisma, preparing_data
 from exceptions import DateError
+from file_reader.db_file_reader import DbFileReader
+
 
 class UIReportPrisma32(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
@@ -60,7 +62,6 @@ class UIReportPrisma32(QtWidgets.QMainWindow, Ui_MainWindow):
             ui_report_drctry.lineEdit.setText("")
         self.widget.show()
 
-
     def report_on_click(self):
         """Метод, описывающий получение паспорта с помощью данных UI"""
         start_date = self.dateEdit.date().toPyDate()
@@ -82,13 +83,19 @@ class UIReportPrisma32(QtWidgets.QMainWindow, Ui_MainWindow):
                     print(f"Создать директорию {picture_path} не удалось")
                 else:
                     print(f"Успешно создана директория {picture_path}")
-            make_report_prisma(start_date=start_date, end_date=end_date, report_path=report_path, picture_path=picture_path,
-                               path_to_files_1=path_to_files_1, path_to_files_2 = path_to_files_2)
+            # concat_n_df_1, concat_n_df_2 = DbFileReader.db_preparing_data(start_date=start_date,
+            #                                                               end_date=end_date,
+            #                                                               path_to_db="mongodb://localhost:27017/")
+            concat_n_df_1, concat_n_df_2 = preparing_data(start_date=start_date,
+                                                          end_date=end_date,
+                                                          path_to_files_1=path_to_files_1,
+                                                          path_to_files_2=path_to_files_2)
+            make_report_prisma(start_date=start_date, end_date=end_date, report_path=report_path,
+                               picture_path=picture_path, concat_n_df_1=concat_n_df_1, concat_n_df_2=concat_n_df_2)
         except PermissionError:
             print("Закройте предыдущую версию файла!")
         except DateError:
             DateError(start_date, end_date).ui_output_error()
-
 
 
 # запуск основного окна

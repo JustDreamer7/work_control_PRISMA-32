@@ -1,3 +1,4 @@
+import datetime
 import time
 import warnings
 import pandas as pd
@@ -5,42 +6,78 @@ from docx import Document
 from docx.enum.text import WD_BREAK
 
 from drawing_graphs import GraphsDrawing
-from processing_data_prisma import ProccessingPrismaCl
+from file_reader.file_reader import FileReader
+from processing_data_prisma_ver_2 import ProccessingPrismaCl
 from word_addition import *
 
-def make_report_prisma(start_date, end_date, path_to_files_1, path_to_files_2, report_path, picture_path):
+amp_n_cols = []
+for item in range(1, 17):
+    amp_n_cols.append(f'amp{item}')
+    amp_n_cols.append(f'n{item}')
+
+
+def preparing_data(start_date, end_date, path_to_files_1, path_to_files_2):
+    concat_n_df_1 = pd.DataFrame(columns=['Date', 'time', 'trigger'] + amp_n_cols)
+    concat_n_df_2 = pd.DataFrame(columns=['Date', 'time', 'trigger'] + amp_n_cols)
+    for single_date in pd.date_range(start_date - datetime.timedelta(days=1), end_date):
+        try:
+            n_file_reader_1 = FileReader(cluster=1, single_date=single_date, path_to_files=path_to_files_1)
+            n_file_today, n_file_day_after = n_file_reader_1.reading_n_file()
+            concat_n_df_1 = FileReader.concat_data(file_today=n_file_today, file_day_after=n_file_day_after,
+                                                   single_date=single_date,
+                                                   concat_n_df=concat_n_df_1)
+        except FileNotFoundError:
+            print(
+                f"File {path_to_files_1}/n_{single_date.month:02}-" +
+                f"{single_date.day:02}.{single_date.year - 2000:02}', does not exist")
+        try:
+            n_file_reader_2 = FileReader(cluster=2, single_date=single_date, path_to_files=path_to_files_2)
+            n_file_today_2, n_file_day_after_2 = n_file_reader_2.reading_n_file()
+            concat_n_df_2 = FileReader.concat_data(file_today=n_file_today_2, file_day_after=n_file_day_after_2,
+                                                   single_date=single_date, concat_n_df=concat_n_df_2)
+        except FileNotFoundError:
+            print(
+                f"File {path_to_files_2}/2n_{single_date.month:02}-" +
+                f"{single_date.day:02}.{single_date.year - 2000:02}', does not exist")
+
+    return concat_n_df_1, concat_n_df_2
+
+
+def make_report_prisma(start_date, end_date, report_path, picture_path, concat_n_df_1, concat_n_df_2):
     t1 = time.time()
 
     warnings.filterwarnings(action='ignore')
 
     days_amount = len(pd.date_range(start_date, end_date))
 
-    process_1 = ProccessingPrismaCl(1, start_date=start_date, end_date=end_date,
-                                    path_to_files=path_to_files_1)
-    process_2 = ProccessingPrismaCl(2, start_date=start_date, end_date=end_date,
-                                    path_to_files=path_to_files_2)
+    process_1 = ProccessingPrismaCl(n_data=concat_n_df_1)
+    process_2 = ProccessingPrismaCl(n_data=concat_n_df_2)
+
     graphs = GraphsDrawing(start_date=start_date, end_date=end_date,
                            path_to_pic=f'{picture_path}')
 
-    worktime_frame_1, breaks_frame_1, n_vs_zero_tr_frame_1, event_counter_fr_4_1, amp_5_fr_2_frame_1, amp_10_fr_1_frame_1, count_rate_amp_5_fr_2_1, count_rate_amp_10_fr_1_1 = process_1.day_proccessing()
+    worktime_frame_1, breaks_frame_1, n_vs_zero_tr_frame_1, event_counter_fr_4_1, count_rate_amp_5_fr_2_1, count_rate_amp_10_fr_1_1, amp_5_fr_2_frame_1, amp_10_fr_1_frame_1, = process_1.period_processing_for_report(
+        start_date=start_date, end_date=end_date)
 
-
-    worktime_frame_2, breaks_frame_2, n_vs_zero_tr_frame_2, event_counter_fr_4_2, amp_5_fr_2_frame_2, amp_10_fr_1_frame_2, count_rate_amp_5_fr_2_2, count_rate_amp_10_fr_1_2 = process_2.day_proccessing()
+    worktime_frame_2, breaks_frame_2, n_vs_zero_tr_frame_2, event_counter_fr_4_2, count_rate_amp_5_fr_2_2, count_rate_amp_10_fr_1_2, amp_5_fr_2_frame_2, amp_10_fr_1_frame_2 = process_2.period_processing_for_report(
+        start_date=start_date, end_date=end_date)
 
     brake_both_cl_time = 0
     for i in range(len(breaks_frame_1.index)):
         for j in range(len(breaks_frame_2.index)):
             if breaks_frame_1['Date'][i] == breaks_frame_2['Date'][j]:
-                if breaks_frame_1['StartMinutes'][i] <= breaks_frame_2['StartMinutes'][j] < breaks_frame_1['EndMinutes'][i]:
-                    brake_both_cl_time += min(breaks_frame_2['EndMinutes'][j], breaks_frame_1['EndMinutes'][i]) - max(
-                        breaks_frame_2['StartMinutes'][j], breaks_frame_1['StartMinutes'][i])
-                elif breaks_frame_2['StartMinutes'][j] <= breaks_frame_1['StartMinutes'][i] < breaks_frame_2['EndMinutes'][
-                    j]:
-                    brake_both_cl_time += min(breaks_frame_2['EndMinutes'][j], breaks_frame_1['EndMinutes'][i]) - max(
-                        breaks_frame_2['StartMinutes'][j], breaks_frame_1['StartMinutes'][i])
+                if breaks_frame_1['StartSeconds'][i] <= breaks_frame_2['EndSeconds'][j] < \
+                        breaks_frame_1['EndSeconds'][i]:
+                    brake_both_cl_time += min(breaks_frame_2['EndSeconds'][j], breaks_frame_1['EndSeconds'][i]) - max(
+                        breaks_frame_2['StartSeconds'][j], breaks_frame_1['StartSeconds'][i])
+                elif breaks_frame_2['StartSeconds'][j] <= breaks_frame_1['StartSeconds'][i] < \
+                        breaks_frame_2['EndSeconds'][
+                            j]:
+                    brake_both_cl_time += min(breaks_frame_2['EndSeconds'][j], breaks_frame_1['EndSeconds'][i]) - max(
+                        breaks_frame_2['StartSeconds'][j], breaks_frame_1['StartSeconds'][i])
 
     real_worktime = worktime_frame_2['Worktime'].sum() - 24 * days_amount + worktime_frame_1[
-        'Worktime'].sum() + brake_both_cl_time / 60
+        'Worktime'].sum() + brake_both_cl_time / 3600
 
     print(f'{brake_both_cl_time=}')
 
@@ -63,18 +100,18 @@ def make_report_prisma(start_date, end_date, path_to_files_1, path_to_files_2, r
                                                                 a_crit=6, freq=2)
 
     count_rate_amp_5_fr_2_pic_path_1 = graphs.count_rate_graph(cluster=1, count_rate_frame=count_rate_amp_5_fr_2_1,
-                                                      working_frame=worktime_frame_1,
-                                                      a_crit=5, freq=2)
+                                                               working_frame=worktime_frame_1,
+                                                               a_crit=5, freq=2)
     count_rate_amp_5_fr_2_pic_path_2 = graphs.count_rate_graph(cluster=2, count_rate_frame=count_rate_amp_5_fr_2_2,
-                                                      working_frame=worktime_frame_2,
-                                                      a_crit=5, freq=2)
+                                                               working_frame=worktime_frame_2,
+                                                               a_crit=5, freq=2)
 
     count_rate_amp_10_fr_1_pic_path_1 = graphs.count_rate_graph(cluster=1, count_rate_frame=count_rate_amp_10_fr_1_1,
-                                                       working_frame=worktime_frame_1,
-                                                       a_crit=10, freq=1)
+                                                                working_frame=worktime_frame_1,
+                                                                a_crit=10, freq=1)
     count_rate_amp_10_fr_1_pic_path_2 = graphs.count_rate_graph(cluster=2, count_rate_frame=count_rate_amp_10_fr_1_2,
-                                                       working_frame=worktime_frame_2,
-                                                       a_crit=10, freq=1)
+                                                                working_frame=worktime_frame_2,
+                                                                a_crit=10, freq=1)
 
     del graphs
 
@@ -116,7 +153,8 @@ def make_report_prisma(start_date, end_date, path_to_files_1, path_to_files_2, r
 
     fail_str_begin_1, fail_str_end_1, lost_minutes_1, break_1 = time_breaks_counter(brake_frame=breaks_frame_1)
     fail_str_begin_2, fail_str_end_2, lost_minutes_2, break_2 = time_breaks_counter(brake_frame=breaks_frame_2)
-    brake_table_title = doc.add_paragraph('Таблица 2: Сводная таблица остановок и работ установки ПРИЗМА-32.', style='PItalic')
+    brake_table_title = doc.add_paragraph('Таблица 2: Сводная таблица остановок и работ установки ПРИЗМА-32.',
+                                          style='PItalic')
     brake_table_title.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
     brake_table = doc.add_table(len(fail_str_begin_1) + len(fail_str_begin_2) + 2, 5, doc.styles['Table Grid'])
     brake_table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -145,7 +183,7 @@ def make_report_prisma(start_date, end_date, path_to_files_1, path_to_files_2, r
         brake_table.cell(i, 3).text = str(lost_minutes_2[i - 2 - len(fail_str_begin_1)])
         brake_table.cell(i, 4).text = ' '
 
-    make_table_bold(brake_table, cols=5, rows=len(fail_str_begin_1) + len(fail_str_begin_2)+2)
+    make_table_bold(brake_table, cols=5, rows=len(fail_str_begin_1) + len(fail_str_begin_2) + 2)
     doc.add_paragraph()
 
     table_title = doc.add_paragraph(
@@ -153,15 +191,18 @@ def make_report_prisma(start_date, end_date, path_to_files_1, path_to_files_2, r
         style='PItalic')
     table_title.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
 
-    neut_stat_info_1, neut_stat_info_2 = statistical_table(n_vs_zero_tr_frame_1, n_vs_zero_tr_frame_2, dimension='100/соб')
+    neut_stat_info_1, neut_stat_info_2 = statistical_table(n_vs_zero_tr_frame_1, n_vs_zero_tr_frame_2,
+                                                           dimension='100/соб')
 
     neutron_table = doc.add_table(3, 3, doc.styles['Table Grid'])
     neutron_table.cell(0, 0).text = 'Счет/кластер'
     neutron_table.cell(0, 1).text = 'Кл1'
     neutron_table.cell(0, 2).text = 'Кл2'
     neutron_table.cell(1, 0).text = 'События (Fr ≥ 4, A ≥ 5), N соб./ч.'
-    neutron_table.cell(1, 1).text = str(round((event_counter_fr_4_1['Events'] / worktime_frame_1['Worktime']).mean(), 2))
-    neutron_table.cell(1, 2).text = str(round((event_counter_fr_4_2['Events'] / worktime_frame_2['Worktime']).mean(), 2))
+    neutron_table.cell(1, 1).text = str(
+        round((event_counter_fr_4_1['Events'] / worktime_frame_1['Worktime']).mean(), 2))
+    neutron_table.cell(1, 2).text = str(
+        round((event_counter_fr_4_2['Events'] / worktime_frame_2['Worktime']).mean(), 2))
     neutron_table.cell(2, 0).text = 'Нейтроны, (Nn)/соб.'
     neutron_table.cell(2, 1).text = str(round(neut_stat_info_1.iloc[0].sum(), 2))
     neutron_table.cell(2, 2).text = str(round(neut_stat_info_2.iloc[0].sum(), 2))
@@ -221,7 +262,6 @@ def make_report_prisma(start_date, end_date, path_to_files_1, path_to_files_2, r
     table_title.add_run('(100/соб)').bold = True
     table_title.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
 
-
     neutron_stat_table = doc.add_table(neut_stat_info_1.shape[0] + neut_stat_info_2.shape[0] + 2,
                                        neut_stat_info_1.shape[1] + 2,
                                        doc.styles['Table Grid'])
@@ -265,7 +305,8 @@ def make_report_prisma(start_date, end_date, path_to_files_1, path_to_files_2, r
         style='PItalic')
     table_title.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
 
-    count_rate_stat_info_1, count_rate_stat_info_2 = statistical_table(count_rate_amp_10_fr_1_1, count_rate_amp_10_fr_1_2,
+    count_rate_stat_info_1, count_rate_stat_info_2 = statistical_table(count_rate_amp_10_fr_1_1,
+                                                                       count_rate_amp_10_fr_1_2,
                                                                        dimension='cоб./ч.')
     count_stat_table_2 = doc.add_table(count_rate_stat_info_1.shape[0] + count_rate_stat_info_2.shape[0] + 2,
                                        count_rate_stat_info_1.shape[1] + 2, doc.styles['Table Grid'])
@@ -276,8 +317,9 @@ def make_report_prisma(start_date, end_date, path_to_files_1, path_to_files_2, r
     run = doc.add_paragraph().add_run()
     run.add_break(WD_BREAK.PAGE)
 
-    graphic_header = doc.add_paragraph('На рисунке 8, 9 представлено число сигналов с А>5 кодов АЦП в час для 16 детекторов.',
-                             style='Head-graphic')
+    graphic_header = doc.add_paragraph(
+        'На рисунке 8, 9 представлено число сигналов с А>5 кодов АЦП в час для 16 детекторов.',
+        style='Head-graphic')
     graphic_header.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
 
     adding_graphic(doc, title='Рис. 10 - Амплитудное распределение сигналов от детекторов, кластер 1 (Fr ≥ 2 и А > 5)',
@@ -286,6 +328,7 @@ def make_report_prisma(start_date, end_date, path_to_files_1, path_to_files_2, r
                    width=6, picture_path=amp_distribution_pic_path_2)
     add_page_number(doc.sections[0].footer.paragraphs[0])
 
-    doc.save(f'{report_path}\\{start_date.day:02}.{start_date.month:02}.{start_date.year}-{end_date.day:02}.{end_date.month:02}.{end_date.year}.docx')
+    doc.save(
+        f'{report_path}\\{start_date.day:02}.{start_date.month:02}.{start_date.year}-{end_date.day:02}.{end_date.month:02}.{end_date.year}.docx')
 
     print(time.time() - t1)
