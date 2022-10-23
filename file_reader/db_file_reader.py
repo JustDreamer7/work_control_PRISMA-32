@@ -24,8 +24,6 @@ class DbFileReader(FileReader):
         data_cl = pd.DataFrame.from_records(
             pymongo.MongoClient(self.__db_url)["prisma-32_db"][f'{str(self.single_date.date())}_12d'].find(
                 {'cluster': self.cluster}))
-        # print(self.single_date)
-        # print(data_cl)
         if data_cl.empty:
             raise FileNotFoundError
         amp_dict = defaultdict(list)

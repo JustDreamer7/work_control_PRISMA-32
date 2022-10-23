@@ -125,6 +125,3 @@ class GraphsDrawing:
         path_pic = f'{self.path_to_pic}\\{cluster}count_rate_{a_crit}_fr_{freq}{self.start_date.day}-{self.start_date.month}-{self.end_date.day}-{self.end_date.month}.png'
         plt.savefig(path_pic, bbox_inches='tight')
         return path_pic
-
-
-

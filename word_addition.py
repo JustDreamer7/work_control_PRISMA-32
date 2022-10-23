@@ -191,7 +191,7 @@ def time_breaks_counter(brake_frame):
             f" {brake_frame['Date'][i]}  {start_hour:02}:{start_minute:02}:{start_second:02}")
         fail_str_end.append(
             f" {brake_frame['Date'][i]}  {end_hour:02}:{end_minute:02}:{end_second:02}")
-        lost_minutes.append(int(brake_frame['EndSeconds'][i]//60 - brake_frame['StartSeconds'][i]//60))
+        lost_minutes.append(int(brake_frame['EndSeconds'][i] // 60 - brake_frame['StartSeconds'][i] // 60))
 
     for i in range(1, len(brake_frame.index)):
         if brake_frame['StartSeconds'][i] == 0 and brake_frame['EndSeconds'][i - 1] == 1435 and \

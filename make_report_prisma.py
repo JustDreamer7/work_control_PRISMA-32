@@ -7,7 +7,7 @@ from docx.enum.text import WD_BREAK
 
 from drawing_graphs import GraphsDrawing
 from file_reader.file_reader import FileReader
-from processing_data_prisma_ver_2 import ProccessingPrismaCl
+from processing_data_prisma import ProccessingPrismaCl
 from word_addition import *
 
 amp_n_cols = []
