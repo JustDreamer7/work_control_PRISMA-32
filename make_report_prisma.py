@@ -16,33 +16,6 @@ for item in range(1, 17):
     amp_n_cols.append(f'n{item}')
 
 
-def preparing_data(start_date, end_date, path_to_files_1, path_to_files_2):
-    concat_n_df_1 = pd.DataFrame(columns=['Date', 'time', 'trigger'] + amp_n_cols)
-    concat_n_df_2 = pd.DataFrame(columns=['Date', 'time', 'trigger'] + amp_n_cols)
-    for single_date in pd.date_range(start_date - datetime.timedelta(days=1), end_date):
-        try:
-            n_file_reader_1 = FileReader(cluster=1, single_date=single_date, path_to_files=path_to_files_1)
-            n_file_today, n_file_day_after = n_file_reader_1.reading_n_file()
-            concat_n_df_1 = FileReader.concat_data(file_today=n_file_today, file_day_after=n_file_day_after,
-                                                   single_date=single_date,
-                                                   concat_n_df=concat_n_df_1)
-        except FileNotFoundError:
-            print(
-                f"File {path_to_files_1}/n_{single_date.month:02}-" +
-                f"{single_date.day:02}.{single_date.year - 2000:02}', does not exist")
-        try:
-            n_file_reader_2 = FileReader(cluster=2, single_date=single_date, path_to_files=path_to_files_2)
-            n_file_today_2, n_file_day_after_2 = n_file_reader_2.reading_n_file()
-            concat_n_df_2 = FileReader.concat_data(file_today=n_file_today_2, file_day_after=n_file_day_after_2,
-                                                   single_date=single_date, concat_n_df=concat_n_df_2)
-        except FileNotFoundError:
-            print(
-                f"File {path_to_files_2}/2n_{single_date.month:02}-" +
-                f"{single_date.day:02}.{single_date.year - 2000:02}', does not exist")
-
-    return concat_n_df_1, concat_n_df_2
-
-
 def make_report_prisma(start_date, end_date, report_path, picture_path, concat_n_df_1, concat_n_df_2):
     t1 = time.time()
 
