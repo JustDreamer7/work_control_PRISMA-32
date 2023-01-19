@@ -1,12 +1,11 @@
-import datetime
 import time
 import warnings
+
 import pandas as pd
 from docx import Document
 from docx.enum.text import WD_BREAK
 
 from drawing_graphs import GraphsDrawing
-from file_reader.file_reader import FileReader
 from processing_data_prisma import ProccessingPrismaCl
 from word_addition import *
 
@@ -29,10 +28,12 @@ def make_report_prisma(start_date, end_date, report_path, picture_path, concat_n
     graphs = GraphsDrawing(start_date=start_date, end_date=end_date,
                            path_to_pic=f'{picture_path}')
 
-    worktime_frame_1, breaks_frame_1, n_vs_zero_tr_frame_1, event_counter_fr_4_1, count_rate_amp_5_fr_2_1, count_rate_amp_10_fr_1_1, amp_5_fr_2_frame_1, amp_10_fr_1_frame_1, = process_1.period_processing_for_report(
+    worktime_frame_1, breaks_frame_1, n_vs_zero_tr_frame_1, event_counter_fr_4_1, count_rate_amp_5_fr_2_1,\
+    count_rate_amp_10_fr_1_1, amp_5_fr_2_frame_1, amp_10_fr_1_frame_1, = process_1.period_processing_for_report(
         start_date=start_date, end_date=end_date)
 
-    worktime_frame_2, breaks_frame_2, n_vs_zero_tr_frame_2, event_counter_fr_4_2, count_rate_amp_5_fr_2_2, count_rate_amp_10_fr_1_2, amp_5_fr_2_frame_2, amp_10_fr_1_frame_2 = process_2.period_processing_for_report(
+    worktime_frame_2, breaks_frame_2, n_vs_zero_tr_frame_2, event_counter_fr_4_2, count_rate_amp_5_fr_2_2, \
+    count_rate_amp_10_fr_1_2, amp_5_fr_2_frame_2, amp_10_fr_1_frame_2 = process_2.period_processing_for_report(
         start_date=start_date, end_date=end_date)
 
     brake_both_cl_time = 0

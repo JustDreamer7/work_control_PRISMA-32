@@ -35,7 +35,7 @@ class ProccessingPrismaCl:
                 event_counter_fr_4['Events'].append(0.00)
                 continue
 
-            break_time_dict, worktime_item = self._counting_break_time(single_n_data, delta_time_crit=600)
+            break_time_dict, worktime_item = self._counting_break_time(single_n_data, delta_time_crit=840)
             worktime_dict['Worktime'].append(worktime_item)
             # print(break_time_dict)
             if break_time_dict:
@@ -75,7 +75,6 @@ class ProccessingPrismaCl:
         time_difference = n_file['time'].diff()
         daily_breaks_dict = defaultdict(list)
         worktime_item = 24.00
-        # print(f'{time_difference=}')
         for i in range(1, len(time_difference)):
             if time_difference[i] > delta_time_crit:
                 daily_breaks_dict['StartSeconds'].append(n_file['time'][i - 1])
