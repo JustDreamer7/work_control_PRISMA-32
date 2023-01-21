@@ -64,9 +64,7 @@ def make_report_prisma(start_date, end_date, report_path, picture_path, concat_n
     n_vs_zero_tr_pic_path_2 = graphs.neutron_to_0_tr_graph(cluster=2, neutron_num_0_tr_frame=n_vs_zero_tr_frame_2)
 
     event_counter_fr_4_pic_path = graphs.amp_5_fr_4_graph(amp_5_fr_4_frame=event_counter_fr_4_1,
-                                                          amp_5_fr_4_frame_2=event_counter_fr_4_2,
-                                                          worktime_frame=worktime_frame_1,
-                                                          worktime_frame_2=worktime_frame_2)
+                                                          amp_5_fr_4_frame_2=event_counter_fr_4_2)
 
     amp_distribution_pic_path_1 = graphs.amp_distribution_graph(cluster=1, amp_distribution_frame=amp_5_fr_2_frame_1,
                                                                 a_crit=6, freq=2)
@@ -74,17 +72,13 @@ def make_report_prisma(start_date, end_date, report_path, picture_path, concat_n
                                                                 a_crit=6, freq=2)
 
     count_rate_amp_5_fr_2_pic_path_1 = graphs.count_rate_graph(cluster=1, count_rate_frame=count_rate_amp_5_fr_2_1,
-                                                               working_frame=worktime_frame_1,
                                                                a_crit=5, freq=2)
     count_rate_amp_5_fr_2_pic_path_2 = graphs.count_rate_graph(cluster=2, count_rate_frame=count_rate_amp_5_fr_2_2,
-                                                               working_frame=worktime_frame_2,
                                                                a_crit=5, freq=2)
 
     count_rate_amp_10_fr_1_pic_path_1 = graphs.count_rate_graph(cluster=1, count_rate_frame=count_rate_amp_10_fr_1_1,
-                                                                working_frame=worktime_frame_1,
                                                                 a_crit=10, freq=1)
     count_rate_amp_10_fr_1_pic_path_2 = graphs.count_rate_graph(cluster=2, count_rate_frame=count_rate_amp_10_fr_1_2,
-                                                                working_frame=worktime_frame_2,
                                                                 a_crit=10, freq=1)
 
     del graphs

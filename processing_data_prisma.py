@@ -1,7 +1,7 @@
 # import datetime
 
 from collections import defaultdict
-
+import numpy as np
 import pandas as pd
 
 
@@ -27,12 +27,20 @@ class ProccessingPrismaCl:
             single_n_data = self.n_data[self.n_data['Date'] == single_date].reset_index(drop=True)
 
             if len(single_n_data) == 0:
-                worktime_dict['Worktime'].append(0.00)
+                # worktime_dict['Worktime'].append(0.00)
+                # event_counter_fr_4['Events'].append(0.00)
+                worktime_dict[f'Worktime'].append(np.nan)
+                event_counter_fr_4['Events'].append(np.nan)
+                breaks_dict['Date'].append(single_date.date())
+                breaks_dict['StartSeconds'].append(0)
+                breaks_dict['EndSeconds'].append(86399)
                 for i in range(16):
-                    n_vs_zero_tr_dict[f'n{i + 1}'].append(0.00)
-                    count_rate_amp_5_fr_2[f'amp{i + 1}'].append(0.00)
-                    count_rate_amp_10_fr_1[f'amp{i + 1}'].append(0.00)
-                event_counter_fr_4['Events'].append(0.00)
+                    n_vs_zero_tr_dict[f'n{i + 1}'].append(np.nan)
+                    count_rate_amp_5_fr_2[f'amp{i + 1}'].append(np.nan)
+                    count_rate_amp_10_fr_1[f'amp{i + 1}'].append(np.nan)
+                    # n_vs_zero_tr_dict[f'n{i + 1}'].append(0.00)
+                    # count_rate_amp_5_fr_2[f'amp{i + 1}'].append(0.00)
+                    # count_rate_amp_10_fr_1[f'amp{i + 1}'].append(0.00)
                 continue
 
             break_time_dict, worktime_item = self._counting_break_time(single_n_data, delta_time_crit=840)
@@ -46,12 +54,12 @@ class ProccessingPrismaCl:
             for i in range(16):
                 n_vs_zero_tr_dict[f'n{i + 1}'].append(neutron_to_zero_trigger[i])
                 count_rate_amp_5_fr_2[f'amp{i + 1}'].append(
-                    self._set_event_counter(single_n_data, a_crit=6, freq=2)['count_rate'][i + 1])
+                    self._set_event_counter(single_n_data, a_crit=6, freq=2)['count_rate'][i + 1] / worktime_item)
                 count_rate_amp_10_fr_1[f'amp{i + 1}'].append(
-                    self._set_event_counter(single_n_data, a_crit=11, freq=1)['count_rate'][i + 1])
+                    self._set_event_counter(single_n_data, a_crit=11, freq=1)['count_rate'][i + 1] / worktime_item)
 
             event_counter_fr_4['Events'].append(
-                self._set_event_counter(single_n_data, a_crit=6, freq=4)['sum_events'])
+                self._set_event_counter(single_n_data, a_crit=6, freq=4)['sum_events'] / worktime_item)
 
         amp_5_fr_2_frame = self.set_amp_df(a_crit=6, freq=2)
         amp_10_fr_1_frame = self.set_amp_df(a_crit=11, freq=1)
@@ -62,9 +70,17 @@ class ProccessingPrismaCl:
         count_rate_amp_5_fr_2 = pd.DataFrame(count_rate_amp_5_fr_2)
         count_rate_amp_10_fr_1 = pd.DataFrame(count_rate_amp_10_fr_1)
 
-        for column in [f'amp{i}' for i in range(1, 17)]:
-            count_rate_amp_5_fr_2[column] = count_rate_amp_5_fr_2[column] / worktime_frame['Worktime']
-            count_rate_amp_10_fr_1[column] = count_rate_amp_10_fr_1[column] / worktime_frame['Worktime']
+        #temporary regulation
+        # for column in [f'amp{i}' for i in range(1, 17)]:
+        #     count_rate_amp_5_fr_2[column] = count_rate_amp_5_fr_2[column] / worktime_frame['Worktime']
+        #     count_rate_amp_10_fr_1[column] = count_rate_amp_10_fr_1[column] / worktime_frame['Worktime']
+        # event_counter_fr_4['Events'] = event_counter_fr_4['Events'] / worktime_frame['Worktime']
+
+        # NaN to Zero if both values are 0.
+        # event_counter_fr_4.fillna(0,inplace=True)
+        # count_rate_amp_5_fr_2.fillna(0, inplace=True)
+        # count_rate_amp_10_fr_1.fillna(0, inplace=True)
+        # print(count_rate_amp_5_fr_2)
 
         return worktime_frame, breaks_frame, n_vs_zero_tr_frame, event_counter_fr_4, count_rate_amp_5_fr_2, count_rate_amp_10_fr_1, amp_5_fr_2_frame, amp_10_fr_1_frame
 
