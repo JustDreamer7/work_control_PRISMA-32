@@ -148,7 +148,7 @@ class GraphsDrawing:
         """Метод, рисующий скорость счета детекторов для событий с A>5, Fr>=2 для заданного кластера, дает на выходе
         путь к месту где в системе лежит график"""
         self.graph_format(y_lim=[0, 8], x_label='Дата', y_label='N, соб/час')
-        plt.title("1-кластер", bbox=self.box, fontsize=self.title_fontsize, loc='center')
+        plt.title(f"{cluster}-кластер", bbox=self.box, fontsize=self.title_fontsize, loc='center')
         for i in range(1, 17):
             plt.xticks([i.date() for i in list(count_rate_frame['Date'])[::self.xticks_spaces]],
                        [i.date() for i in list(count_rate_frame['Date'])[::self.xticks_spaces]])
