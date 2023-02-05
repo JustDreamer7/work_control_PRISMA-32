@@ -83,12 +83,18 @@ class Ui_takeFiles(object):
         self.lineEdit_2.setPlaceholderText(_translate("takeFiles", "Введите папку c нужными файлами"))
         self.pushButton_2.setText(_translate("takeFiles", "Обзор"))
 
-    def get_file_directory(self, filename):
-        dirlist = QFileDialog.getExistingDirectory()
-        if filename == 'path_prisma_1cl_files':
-            self.lineEdit.setText(dirlist)
+    def get_file_directory(self, path_name):
+        direct_path = QFileDialog.getExistingDirectory()
+        if path_name == 'PATH_PRISMA_1CL':
+            self.lineEdit.setText(direct_path)
         else:
-            self.lineEdit_2.setText(dirlist)
-        with open(filename + '.txt', 'w') as f:
-            f.write(dirlist)
-        print(dirlist)
+            self.lineEdit_2.setText(direct_path)
+        with open(".env", "r") as f:
+            lines = f.readlines()
+        for i, line in enumerate(lines):
+            key, value = line.split('=')
+            if key == path_name:
+                lines[i] = f'{key}={direct_path}\n'
+        with open(".env", "w") as f:
+            f.writelines(lines)
+        print(f'{path_name}-{direct_path}')

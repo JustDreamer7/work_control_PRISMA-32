@@ -24,7 +24,7 @@ class GraphsDrawing:
         else:
             self.figsize = (18, 10)
             self.label_fontsize = 40
-            self.title_fontsize, self.tick_fontsize, self.legend_fontsize = 18, 18, 18
+            self.title_fontsize, self.tick_fontsize, self.legend_fontsize = 25, 18, 18
             self.leg_linewidth, self.linewidth = 3, 6
             self.marker_size, self.xticks_spaces = 15, 4
             self.major_tick_params = {'width': 4,
@@ -120,11 +120,11 @@ class GraphsDrawing:
     def amp_distribution_graph(self, amp_distribution_frame, cluster, a_crit, freq):
         """Метод, рисующий график амплитудного распределений событий с A>5, Fr>=2 для заданного кластера, дает на выходе
         путь к месту где в системе лежит график"""
-        plt.figure(figsize=(50,25))
-        plt.xlabel('Амплитуда, код АЦП', fontsize=80)
+        plt.figure(figsize=self.figsize)
+        plt.xlabel('Амплитуда, код АЦП', fontsize=self.label_fontsize)
         plt.yscale('log')
         plt.xscale('log')
-        plt.ylabel('N_соб(Fr≥2, A>5)', fontsize=80)
+        plt.ylabel('N_соб(Fr≥2, A>5)', fontsize=self.label_fontsize)
         plt.minorticks_on()
         plt.tick_params(axis='both', which='minor', direction='out', length=self.major_tick_params['length'] / 2,
                         width=self.major_tick_params['width'] / 2, pad=self.major_tick_params['pad'])
@@ -132,7 +132,7 @@ class GraphsDrawing:
                         width=self.major_tick_params['width'], pad=self.major_tick_params['pad'])
         plt.xlim([a_crit - 1, 1000])
         plt.ylim([1, 1000])
-        plt.text(500, 500, "1-кластер", bbox=self.box, fontsize=25)
+        plt.text(500, 500, f"{cluster}-кластер", bbox=self.box, fontsize=25)
         for i in range(1, 17):
             plt.plot(amp_distribution_frame[amp_distribution_frame[f'amp{i}'] >= a_crit][
                          f'amp{i}'].value_counts().sort_index().keys().tolist(),

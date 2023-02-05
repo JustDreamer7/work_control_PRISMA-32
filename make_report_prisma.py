@@ -152,6 +152,7 @@ def make_report_prisma(start_date, end_date, report_path, picture_path, concat_n
         brake_table.cell(i, 4).text = ' '
 
     make_table_bold(brake_table, cols=5, rows=len(fail_str_begin_1) + len(fail_str_begin_2) + 2)
+    change_cell_size(brake_table, column_num=5, size_arr=[1.05, 3.3, 3.3, 1.45, 1.45])
     doc.add_paragraph()
 
     table_title = doc.add_paragraph(

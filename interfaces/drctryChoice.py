@@ -63,8 +63,15 @@ class Ui_drctryChoice(object):
         self.label.setText(_translate("drctryChoice", "Папка для отчета"))
 
     def get_report_directory(self):
-        dirlist = QFileDialog.getExistingDirectory()
-        self.lineEdit.setText(dirlist)
-        with open('path_prisma_report.txt', 'w') as f:
-            f.write(dirlist)
-        print(dirlist)
+        direct_path = QFileDialog.getExistingDirectory()
+        self.lineEdit.setText(direct_path)
+        with open(".env", "r") as f:
+            lines = f.readlines()
+        for i, line in enumerate(lines):
+                key, value = line.split('=')
+                if key == 'PATH_PRISMA_REPORT':
+                    lines[i] = f'{key}={direct_path}\n'
+        with open(".env", "w") as f:
+            f.writelines(lines)
+        print(f'PATH_PRISMA_REPORT - {direct_path}')
+

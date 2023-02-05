@@ -7,8 +7,11 @@ from interfaces.drctryChoice import Ui_drctryChoice
 from interfaces.takeFiles import Ui_takeFiles
 from make_report_prisma import make_report_prisma
 from exceptions import DateError
-from file_reader.db_file_reader import DbFileReader
+# from file_reader.db_file_reader import DbFileReader
 from file_reader.file_reader import FileReader
+from dotenv import load_dotenv
+import pathlib
+load_dotenv()
 
 
 class UIReportPrisma32(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -33,21 +36,13 @@ class UIReportPrisma32(QtWidgets.QMainWindow, Ui_MainWindow):
         ui_file_drctry = Ui_takeFiles()
         ui_file_drctry.setupUi(self.widget)
         """Чтение пути папки с файлами ПРИЗМА"""
-        try:
-            with open('path_prisma_1cl_files.txt', 'r') as f:
-                ui_file_drctry.lineEdit.setText(f.read())
-        except FileNotFoundError:
-            ui_file_drctry.lineEdit.setText("")
-        try:
-            with open('path_prisma_2cl_files.txt', 'r') as f2:
-                ui_file_drctry.lineEdit_2.setText(f2.read())
-        except FileNotFoundError:
-            ui_file_drctry.lineEdit_2.setText("")
+        ui_file_drctry.lineEdit.setText(os.environ.get("PATH_PRISMA_1CL"))
+        ui_file_drctry.lineEdit_2.setText(os.environ.get("PATH_PRISMA_2CL"))
         """Запись в файл пути папки с файлами ПРИЗМА"""
         ui_file_drctry.pushButton.clicked.connect(
-            lambda: Ui_takeFiles.get_file_directory(ui_file_drctry, 'path_prisma_1cl_files'))
+            lambda: Ui_takeFiles.get_file_directory(ui_file_drctry, 'PATH_PRISMA_1CL'))
         ui_file_drctry.pushButton_2.clicked.connect(
-            lambda: Ui_takeFiles.get_file_directory(ui_file_drctry, 'path_prisma_2cl_files'))
+            lambda: Ui_takeFiles.get_file_directory(ui_file_drctry, 'PATH_PRISMA_2CL'))
         self.widget.show()
 
     def open_report_directory(self):
@@ -55,35 +50,28 @@ class UIReportPrisma32(QtWidgets.QMainWindow, Ui_MainWindow):
          картинок, файлов и т.д."""
         ui_report_drctry = Ui_drctryChoice()
         ui_report_drctry.setupUi(self.widget)
+        ui_report_drctry.lineEdit.setText(os.environ.get("PATH_PRISMA_REPORT"))
         ui_report_drctry.pushButton.clicked.connect(lambda: Ui_drctryChoice.get_report_directory(ui_report_drctry))
-        try:
-            with open('path_prisma_report.txt', 'r') as f:
-                ui_report_drctry.lineEdit.setText(f.read())
-        except FileNotFoundError:
-            ui_report_drctry.lineEdit.setText("")
         self.widget.show()
 
     def report_on_click(self):
         """Метод, описывающий получение паспорта с помощью данных UI"""
+        load_dotenv()
         start_date = self.dateEdit.date().toPyDate()
         end_date = self.dateEdit_2.date().toPyDate()
         try:
             if start_date > end_date:
                 raise DateError(start_date, end_date)
-            with open('path_prisma_report.txt', 'r') as f:
-                report_path = f.read()
-            picture_path = report_path + '/Pics' + f'/{start_date.year}'
-            with open('path_prisma_1cl_files.txt', 'r') as f:
-                path_to_files_1 = f.read()
-            with open('path_prisma_2cl_files.txt', 'r') as f:
-                path_to_files_2 = f.read()
-            if ~os.path.exists(picture_path):
-                try:
-                    os.mkdir(picture_path)
-                except OSError:
-                    print(f"Создать директорию {picture_path} не удалось")
-                else:
-                    print(f"Успешно создана директория {picture_path}")
+            report_path = os.environ.get('PATH_PRISMA_REPORT')
+            path_to_files_1 = os.environ.get('PATH_PRISMA_1CL')
+            path_to_files_2 = os.environ.get('PATH_PRISMA_2CL')
+            picture_path = pathlib.PurePath(report_path, 'Pics')
+            try:
+                os.mkdir(picture_path)
+            except OSError:
+                print(f"Создать директорию {picture_path} не удалось")
+            else:
+                print(f"Успешно создана директория {picture_path}")
             # concat_n_df_1 = DbFileReader.db_preparing_data(start_date=start_date,
             #                                                end_date=end_date,
             #                                                path_to_db="mongodb://localhost:27017/",
