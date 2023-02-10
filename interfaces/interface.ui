@@ -35,7 +35,7 @@ color: rgb(255, 255, 255);
     <property name="geometry">
      <rect>
       <x>40</x>
-      <y>400</y>
+      <y>320</y>
       <width>131</width>
       <height>61</height>
      </rect>
@@ -194,31 +194,6 @@ color: rgb(0, 0, 0);</string>
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QPushButton" name="runSevend">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>320</y>
-      <width>131</width>
-      <height>61</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Calibri</family>
-      <pointsize>14</pointsize>
-      <weight>75</weight>
-      <bold>true</bold>
-     </font>
-    </property>
-    <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);
-color: rgb(0, 0, 0);</string>
-    </property>
-    <property name="text">
-     <string>Run 7d</string>
-    </property>
-   </widget>
    <widget class="QPushButton" name="openFileDirectory">
     <property name="geometry">
      <rect>
@@ -254,6 +229,46 @@ color: rgb(0, 0, 0);</string>
     </property>
     <property name="autoExclusive">
      <bool>true</bool>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radioButton">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>409</y>
+      <width>171</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Исходные файлы</string>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="radioButton_2">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>450</y>
+      <width>171</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>9</pointsize>
+      <weight>75</weight>
+      <bold>true</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>БД</string>
     </property>
    </widget>
   </widget>

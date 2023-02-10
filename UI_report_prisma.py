@@ -7,7 +7,7 @@ from interfaces.drctryChoice import Ui_drctryChoice
 from interfaces.takeFiles import Ui_takeFiles
 from make_report_prisma import make_report_prisma
 from exceptions import DateError
-# from file_reader.db_file_reader import DbFileReader
+from file_reader.db_file_reader import DbFileReader
 from file_reader.file_reader import FileReader
 from dotenv import load_dotenv
 import pathlib
@@ -23,6 +23,7 @@ class UIReportPrisma32(QtWidgets.QMainWindow, Ui_MainWindow):
         self.runPassport.pressed.connect(self.report_on_click)
         self.openDirectory.pressed.connect(self.open_report_directory)
         self.openFileDirectory.pressed.connect(self.open_file_directory)
+        self.radioButton.setChecked(True)
         self.dateEdit_2.setDate(QtCore.QDate(int(str(datetime.datetime.today()).split(' ')[0].split('-')[0]),
                                              int(str(datetime.datetime.today()).split(' ')[0].split('-')[1]),
                                              int(str(datetime.datetime.today()).split(' ')[0].split('-')[2])))
@@ -72,22 +73,24 @@ class UIReportPrisma32(QtWidgets.QMainWindow, Ui_MainWindow):
                 print(f"Создать директорию {picture_path} не удалось")
             else:
                 print(f"Успешно создана директория {picture_path}")
-            # concat_n_df_1 = DbFileReader.db_preparing_data(start_date=start_date,
-            #                                                end_date=end_date,
-            #                                                path_to_db="mongodb://localhost:27017/",
-            #                                                cluster=1)
-            # concat_n_df_2 = DbFileReader.db_preparing_data(start_date=start_date,
-            #                                                end_date=end_date,
-            #                                                path_to_db="mongodb://localhost:27017/",
-            #                                                cluster=2)
-            concat_n_df_1 = FileReader.preparing_data(start_date=start_date,
-                                                      end_date=end_date,
-                                                      cluster=1,
-                                                      path_to_files=path_to_files_1)
-            concat_n_df_2 = FileReader.preparing_data(start_date=start_date,
-                                                      end_date=end_date,
-                                                      cluster=2,
-                                                      path_to_files=path_to_files_2)
+            if self.radioButton.isChecked():
+                concat_n_df_1 = FileReader.preparing_data(start_date=start_date,
+                                                          end_date=end_date,
+                                                          cluster=1,
+                                                          path_to_files=path_to_files_1)
+                concat_n_df_2 = FileReader.preparing_data(start_date=start_date,
+                                                          end_date=end_date,
+                                                          cluster=2,
+                                                          path_to_files=path_to_files_2)
+            else:
+                concat_n_df_1 = DbFileReader.db_preparing_data(start_date=start_date,
+                                                               end_date=end_date,
+                                                               path_to_db=os.environ.get('DB_URL'),
+                                                               cluster=1)
+                concat_n_df_2 = DbFileReader.db_preparing_data(start_date=start_date,
+                                                               end_date=end_date,
+                                                               path_to_db=os.environ.get('DB_URL'),
+                                                               cluster=2)
             make_report_prisma(start_date=start_date, end_date=end_date, report_path=report_path,
                                picture_path=picture_path, concat_n_df_1=concat_n_df_1, concat_n_df_2=concat_n_df_2)
         except PermissionError:
